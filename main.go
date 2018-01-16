@@ -11,6 +11,7 @@ import (
 type Size struct {
 	Width  int
 	Height int
+	Unit   string
 }
 
 // Create :
@@ -27,10 +28,10 @@ func CreateWithSize(href string, size Size) string {
 
 	sizeParams := ""
 	if size.Width > 0 {
-		sizeParams += fmt.Sprintf(";width=%d", size.Width)
+		sizeParams += fmt.Sprintf(";width=%d%s", size.Width, size.Unit)
 	}
 	if size.Height > 0 {
-		sizeParams += fmt.Sprintf(";height=%d", size.Height)
+		sizeParams += fmt.Sprintf(";height=%d%s", size.Height, size.Unit)
 	}
 
 	return fmt.Sprintf("\033]1337;File=name=%s;size=%d%s;inline=1:%s\a\n", fileName, fileSize, sizeParams, image)

@@ -4,14 +4,31 @@ import (
 	b64 "encoding/base64"
 	"encoding/binary"
 	"fmt"
+	"image"
 	"io/ioutil"
+	"os"
 )
 
 // Size :
 type Size struct {
-	Width  int
-	Height int
-	Unit   string
+	Width     int
+	Height    int
+	MaxWidth  int
+	MaxHeight int
+	Unit      string
+}
+
+func getImageDimension(imagePath string) (int, int) {
+	file, err := os.Open(imagePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+	}
+
+	image, _, err := image.DecodeConfig(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", imagePath, err)
+	}
+	return image.Width, image.Height
 }
 
 // Create :
@@ -27,11 +44,25 @@ func CreateWithSize(href string, size Size) string {
 	fileSize := binary.Size(data)
 
 	sizeParams := ""
-	if size.Width > 0 {
-		sizeParams += fmt.Sprintf(";width=%d%s", size.Width, size.Unit)
-	}
-	if size.Height > 0 {
-		sizeParams += fmt.Sprintf(";height=%d%s", size.Height, size.Unit)
+
+	if size.MaxWidth > 0 || size.MaxHeight > 0 {
+		imageWidth, imageHeight := getImageDimension(href)
+
+		if size.MaxWidth > 0 && imageWidth > size.MaxWidth {
+			sizeParams += fmt.Sprintf(";width=%dpx", size.MaxWidth)
+		}
+
+		if size.MaxHeight > 0 && imageHeight > size.MaxHeight {
+			sizeParams += fmt.Sprintf(";height=%dpx", size.MaxHeight)
+		}
+
+	} else {
+		if size.Width > 0 {
+			sizeParams += fmt.Sprintf(";width=%d%s", size.Width, size.Unit)
+		}
+		if size.Height > 0 {
+			sizeParams += fmt.Sprintf(";height=%d%s", size.Height, size.Unit)
+		}
 	}
 
 	return fmt.Sprintf("\033]1337;File=name=%s;size=%d%s;inline=1:%s\a\n", fileName, fileSize, sizeParams, image)

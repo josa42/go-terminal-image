@@ -7,6 +7,10 @@ import (
 	"image"
 	"io/ioutil"
 	"os"
+
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 )
 
 // Size :
